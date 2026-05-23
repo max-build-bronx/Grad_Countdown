@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ortho Class of 2026 — Graduation Countdown</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+
+    :root {
+      --blue: #00c8ff;
+      --blue-glow: rgba(0, 200, 255, 0.3);
+      --white: #e8f4ff;
+      --bg: #060d18;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(0, 200, 255, 0.2);
+      /* national day accent — overridden by JS */
+      --nd-color: #ffd700;
+      --nd-glow: rgba(255, 215, 0, 0.35);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ---- animated X-ray background ---- */
+    .xray-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,200,255,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,100,200,0.06) 0%, transparent 60%);
+      transition: background 1s;
+    }
+
+    .bones-bg {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .bone {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.04;
+      animation: floatBone linear infinite;
+      user-select: none;
+    }
+
+    @keyframes floatBone {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.05; }
+      90%  { opacity: 0.05; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ---- grid scan lines ---- */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,200,255,0.015) 3px,
+        rgba(0,200,255,0.015) 4px
+      );
+    }
+
+    /* ---- main content ---- */
+    .container {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 2rem;
+      padding: 2rem 1rem;
+      max-width: 900px; width: 100%;
+    }
+
+    /* ---- X-ray badge ---- */
+    .xray-badge {
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.4rem 1.2rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(0,200,255,0.05);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 0 20px var(--blue-glow);
+    }
+
+    /* ---- hero title ---- */
+    .hero-title {
+      text-align: center;
+      line-height: 1.1;
+    }
+    .hero-title .class-of {
+      font-family: 'Orbitron', monospace;
+      font-weight: 400;
+      font-size: clamp(1rem, 3vw, 1.3rem);
+      letter-spacing: 0.3em;
+      color: var(--blue);
+      text-transform: uppercase;
+    }
+    .hero-title .main {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2.2rem, 7vw, 4.5rem);
+      line-height: 1.0;
+      background: linear-gradient(135deg, #fff 30%, var(--blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(0,200,255,0.4));
+    }
+    .hero-title .sub {
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.12em;
+      margin-top: 0.5rem;
+      font-weight: 300;
+    }
+
+    /* ---- bone icon row ---- */
+    .icon-row {
+      display: flex; gap: 0.5rem; align-items: center;
+      font-size: 1.4rem;
+      opacity: 0.6;
+    }
+    .icon-row span { animation: pulse 2s ease-in-out infinite; }
+    .icon-row span:nth-child(2) { animation-delay: 0.3s; }
+    .icon-row span:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.25); opacity: 1; }
+    }
+
+    /* ======================================================
+       NATIONAL DAY BANNER
+    ====================================================== */
+    #national-day-banner {
+      display: none;
+      width: 100%;
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid var(--nd-color);
+      background: radial-gradient(ellipse 80% 80% at 50% 50%,
+        rgba(var(--nd-r),var(--nd-g),var(--nd-b),0.12) 0%,
+        transparent 70%);
+      box-shadow: 0 0 50px var(--nd-glow), inset 0 0 30px rgba(var(--nd-r),var(--nd-g),var(--nd-b),0.05);
+      animation: bannerPulse 3s ease-in-out infinite;
+    }
+    #national-day-banner.active { display: block; }
+
+    @keyframes bannerPulse {
+      0%, 100% { box-shadow: 0 0 40px var(--nd-glow), inset 0 0 20px rgba(var(--nd-r),var(--nd-g),var(--nd-b),0.05); }
+      50%       { box-shadow: 0 0 80px var(--nd-glow), inset 0 0 40px rgba(var(--nd-r),var(--nd-g),var(--nd-b),0.12); }
+    }
+
+    .nd-star-row {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.5rem;
+      animation: starSpin 4s linear infinite;
+    }
+    @keyframes starSpin {
+      0%,100% { letter-spacing: 0.5rem; }
+      50%      { letter-spacing: 0.8rem; }
+    }
+
+    .nd-eyebrow {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--nd-color);
+      margin-bottom: 0.5rem;
+      opacity: 0.8;
+    }
+
+    .nd-name {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2rem, 6vw, 4rem);
+      color: #fff;
+      filter: drop-shadow(0 0 20px var(--nd-color));
+      line-height: 1.1;
+    }
+
+    .nd-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1rem, 3vw, 1.8rem);
+      color: var(--nd-color);
+      margin-top: 0.3rem;
+      letter-spacing: 0.1em;
+    }
+
+    .nd-sub {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.75rem;
+      letter-spacing: 0.08em;
+      font-style: italic;
+    }
+
+    /* sparkle particles inside the banner */
+    .nd-sparks {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+    }
+    .nd-spark {
+      position: absolute;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--nd-color);
+      opacity: 0;
+      animation: sparkFloat 3s ease-in-out infinite;
+    }
+    @keyframes sparkFloat {
+      0%   { transform: translateY(0) scale(0); opacity: 0; }
+      20%  { opacity: 0.8; transform: translateY(-20px) scale(1); }
+      100% { transform: translateY(-80px) scale(0.2); opacity: 0; }
+    }
+
+    /* ======================================================
+       PHOTO OF THE DAY (placeholder — wired up when folder provided)
+    ====================================================== */
+    #photo-section {
+      display: none; /* shown on non-national days */
+      width: 100%;
+      max-width: 480px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--card);
+      backdrop-filter: blur(8px);
+    }
+    #photo-section.active { display: block; }
+
+    .photo-header {
+      padding: 0.75rem 1.2rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--blue);
+    }
+
+    .photo-frame {
+      width: 100%;
+      aspect-ratio: 4/3;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.75rem;
+      background: rgba(0,200,255,0.02);
+      /* ─────────────────────────────────────────────────
+         PHOTO PLACEHOLDER — replace this section when
+         graduation-photos/ folder is ready.
+
+         To wire up photos:
+           1. Put all images in a folder next to this file
+           2. Add a JS array PHOTOS = ['folder/img1.jpg', ...]
+           3. Replace the placeholder div with:
+              <img id="photoImg" src="" style="width:100%;height:100%;object-fit:cover;" />
+           4. In tick(), set photoImg.src = todaysPhoto
+         ───────────────────────────────────────────────── */
+      color: rgba(255,255,255,0.15);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-align: center;
+      padding: 2rem;
+    }
+    .photo-frame .photo-icon { font-size: 2.5rem; opacity: 0.3; }
+    .photo-caption {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.08em;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    /* ---- countdown grid ---- */
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .unit-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem 0.5rem 1.2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .unit-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(0,200,255,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .unit-card:hover {
+      border-color: rgba(0,200,255,0.5);
+      box-shadow: 0 0 30px var(--blue-glow);
+    }
+
+    .unit-card .number {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      line-height: 1;
+      color: #fff;
+      filter: drop-shadow(0 0 12px rgba(0,200,255,0.6));
+      transition: transform 0.1s;
+    }
+    .unit-card .number.tick { transform: scale(1.08); }
+    .unit-card .label {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+    .unit-card .sublabel {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    @keyframes blink { 50% { opacity: 0.1; } }
+
+    /* ---- progress bar ---- */
+    .progress-section {
+      width: 100%;
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .progress-labels {
+      display: flex; justify-content: space-between;
+      font-size: 0.7rem; color: rgba(255,255,255,0.35);
+      letter-spacing: 0.1em;
+    }
+    .progress-track {
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 100px;
+      overflow: hidden;
+      border: 1px solid rgba(0,200,255,0.1);
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0050a0, var(--blue), #80e8ff);
+      border-radius: 100px;
+      transition: width 1s linear;
+      box-shadow: 0 0 10px rgba(0,200,255,0.5);
+    }
+    .progress-pct {
+      text-align: right;
+      font-size: 0.65rem;
+      color: var(--blue);
+      font-family: 'Orbitron', monospace;
+    }
+
+    /* ---- quote ---- */
+    .quote-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.8rem;
+      text-align: center;
+      background: rgba(0,200,255,0.03);
+      max-width: 640px;
+      width: 100%;
+    }
+    .quote-text {
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      font-style: italic;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.7;
+      transition: opacity 0.6s;
+    }
+    .quote-author {
+      font-size: 0.7rem;
+      color: var(--blue);
+      letter-spacing: 0.15em;
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+      transition: opacity 0.6s;
+    }
+
+    /* ---- milestone row ---- */
+    .milestones {
+      display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+      width: 100%;
+    }
+    .milestone {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.35rem 1rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.4);
+      transition: all 0.3s;
+    }
+    .milestone.reached {
+      color: var(--blue);
+      border-color: var(--blue);
+      box-shadow: 0 0 12px var(--blue-glow);
+      background: rgba(0,200,255,0.07);
+    }
+    .milestone.reached .check { color: #00ff99; }
+
+    /* ---- footer ---- */
+    .footer {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 0.12em;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    /* ---- confetti canvas ---- */
+    #confetti-canvas {
+      position: fixed; inset: 0; z-index: 100;
+      pointer-events: none;
+    }
+
+    /* ---- celebration overlay ---- */
+    #celebrate {
+      display: none;
+      position: fixed; inset: 0; z-index: 99;
+      flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.85);
+      text-align: center; padding: 2rem;
+    }
+    #celebrate.show { display: flex; }
+    #celebrate .big-emoji { font-size: 5rem; margin-bottom: 1rem; }
+    #celebrate h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2rem, 6vw, 4rem);
+      background: linear-gradient(135deg, #fff 0%, var(--blue) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(0,200,255,0.8));
+    }
+    #celebrate p {
+      color: rgba(255,255,255,0.6);
+      margin-top: 1rem;
+      font-size: 1.1rem;
+    }
+
+    /* ---- upcoming national days strip ---- */
+    #nd-strip {
+      width: 100%;
+      display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;
+    }
+    .nd-chip {
+      border-radius: 100px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      border: 1px solid;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .nd-chip.past   { opacity: 0.3; text-decoration: line-through; }
+    .nd-chip.today  { font-weight: 700; box-shadow: 0 0 14px; animation: chipPulse 1.5s ease-in-out infinite; }
+    .nd-chip.future { opacity: 0.55; }
+    @keyframes chipPulse {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.06); }
+    }
+
+    @media (max-width: 500px) {
+      .countdown-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="xray-bg" id="xrayBg"></div>
+<div class="bones-bg" id="bonesBg"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<div id="celebrate">
+  <div class="big-emoji">🏆</div>
+  <h1>Dr. Class of 2026</h1>
+  <p>The bones are set. The work is done. Welcome to the other side.</p>
+</div>
+
+<div class="container">
+  <div class="xray-badge">🦴 Orthopedic Surgery Residency</div>
+
+  <div class="hero-title">
+    <div class="class-of">Class of 2026</div>
+    <div class="main">GRADUATION</div>
+    <div class="main" style="font-size: clamp(1.5rem, 4vw, 2.8rem); margin-top: 0.2rem;">COUNTDOWN</div>
+    <div class="sub">Friday, June 26, 2026 &nbsp;·&nbsp; 1:00 PM</div>
+  </div>
+
+  <div class="icon-row">
+    <span>🦴</span>
+    <span>🩻</span>
+    <span>🏥</span>
+    <span>🩻</span>
+    <span>🦴</span>
+  </div>
+
+  <!-- NATIONAL DAY BANNER — shown only on that resident's day -->
+  <div id="national-day-banner">
+    <div class="nd-sparks" id="ndSparks"></div>
+    <div class="nd-star-row" id="ndStars">⭐ ⭐ ⭐ ⭐ ⭐</div>
+    <div class="nd-eyebrow">🎉 Today is officially — 🎉</div>
+    <div class="nd-name" id="ndName"></div>
+    <div class="nd-title">DAY!</div>
+    <div class="nd-sub" id="ndSub"></div>
+  </div>
+
+  <!-- PHOTO OF THE DAY — shown on non-national weekdays -->
+  <!-- ══════════════════════════════════════════════════════
+       PHOTO SECTION — PLACEHOLDER
+       This will display a rotating graduation photo once the
+       graduation-photos/ folder is linked in. See JS below
+       for the PHOTOS array and wiring instructions.
+  ══════════════════════════════════════════════════════ -->
+  <div id="photo-section">
+    <div class="photo-header">📸 &nbsp; Graduation Gallery</div>
+    <div class="photo-frame">
+      <div class="photo-icon">🖼️</div>
+      <div>Photos coming soon</div>
+      <div style="font-size:0.6rem; opacity:0.5;">Graduation folder will be linked here</div>
+    </div>
+    <div class="photo-caption" id="photoCaption">Class of 2026 · Ortho Residency</div>
+  </div>
+
+  <!-- COUNTDOWN TILES -->
+  <div class="countdown-grid">
+    <div class="unit-card" id="card-d">
+      <div class="number" id="days">--</div>
+      <div class="label">Days</div>
+      <div class="sublabel">sunrises</div>
+    </div>
+    <div class="unit-card" id="card-h">
+      <div class="number" id="hours">--</div>
+      <div class="label">Hours</div>
+      <div class="sublabel">of residency</div>
+    </div>
+    <div class="unit-card" id="card-m">
+      <div class="number" id="minutes">--</div>
+      <div class="label">Minutes</div>
+      <div class="sublabel">tick tock</div>
+    </div>
+    <div class="unit-card" id="card-s">
+      <div class="number" id="seconds">--</div>
+      <div class="label">Seconds</div>
+      <div class="sublabel">almost there</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-section">
+    <div class="progress-labels">
+      <span>Residency Start</span>
+      <span>Graduation Day 🎓</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+    <div class="progress-pct" id="progressPct">Calculating…</div>
+  </div>
+
+  <!-- UPCOMING NATIONAL DAYS STRIP -->
+  <div id="nd-strip"></div>
+
+  <!-- MILESTONES -->
+  <div class="milestones" id="milestones">
+    <div class="milestone" data-days="30" id="ms-30">
+      <span class="check">✓</span> Under 30 days
+    </div>
+    <div class="milestone" data-days="14" id="ms-14">
+      <span class="check">✓</span> Under 2 weeks
+    </div>
+    <div class="milestone" data-days="7" id="ms-7">
+      <span class="check">✓</span> Final week!
+    </div>
+    <div class="milestone" data-days="1" id="ms-1">
+      <span class="check">✓</span> Tomorrow is the day!
+    </div>
+    <div class="milestone" data-days="0" id="ms-0">
+      <span class="check">🎉</span> Graduation day!
+    </div>
+  </div>
+
+  <!-- ROTATING ORTHO QUOTES -->
+  <div class="quote-box">
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-author" id="quoteAuthor"></div>
+  </div>
+
+  <div class="footer">
+    Share this page with your co-residents · Countdown auto-updates · No page refresh needed
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  // TARGET DATE
+  // ================================================================
+  const TARGET = new Date('2026-06-26T13:00:00');
+  const RESIDENCY_START = new Date('2023-07-01T00:00:00');
+
+  // ================================================================
+  // NATIONAL DAYS
+  // One resident per date. Dates are YYYY-MM-DD in LOCAL time.
+  // Color: [r, g, b] used for CSS custom properties.
+  // emoji: floated in the background on that day.
+  // ================================================================
+  const NATIONAL_DAYS = {
+    '2026-05-22': {
+      name: 'Dr. May Kim',
+      short: 'May Kim',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [255, 215, 0],       // gold
+      hex: '#ffd700',
+      emoji: '⭐'
+    },
+    '2026-05-27': {
+      name: 'Dr. Ashley Kahen',
+      short: 'Ashley Kahen',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [255, 105, 180],     // hot pink
+      hex: '#ff69b4',
+      emoji: '🌸'
+    },
+    '2026-06-01': {
+      name: 'Dr. Mike Backstrand',
+      short: 'Mike Backstrand',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [0, 220, 130],       // emerald green
+      hex: '#00dc82',
+      emoji: '💪'
+    },
+    '2026-06-05': {
+      name: 'Dr. Jonathan Shiloah',
+      short: 'Jonathan Shiloah',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [180, 100, 255],     // purple
+      hex: '#b464ff',
+      emoji: '🔮'
+    },
+    '2026-06-09': {
+      name: 'Dr. Henry Assad',
+      short: 'Henry Assad',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [255, 140, 0],       // orange
+      hex: '#ff8c00',
+      emoji: '🔥'
+    },
+    '2026-06-12': {
+      name: 'Dr. Jeremiah Kim',
+      short: 'Jeremiah Kim',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [0, 210, 210],       // teal
+      hex: '#00d2d2',
+      emoji: '🌊'
+    },
+    '2026-06-17': {
+      name: 'Dr. Manar',
+      short: 'Manar',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [255, 80, 80],       // coral red
+      hex: '#ff5050',
+      emoji: '❤️'
+    },
+    '2026-06-23': {
+      name: 'Dr. Shasen Bates',
+      short: 'Shasen Bates',
+      sub: 'Future orthopedic attending · Class of 2026',
+      color: [160, 130, 255],     // lavender
+      hex: '#a082ff',
+      emoji: '✨'
+    },
+  };
+
+  // ================================================================
+  // PHOTO GALLERY — wire up when folder is ready
+  // ================================================================
+  // PHOTOS array: add image paths here once graduation folder is linked.
+  // Paths should be relative to this HTML file, e.g.:
+  //   'graduation-photos/photo1.jpg'
+  // When empty, the placeholder frame is shown instead.
+  const PHOTOS = [
+    /* 'graduation-photos/photo1.jpg', */
+    /* 'graduation-photos/photo2.jpg', */
+  ];
+  // Photos will rotate daily — photo index = day-of-year mod PHOTOS.length
+
+  // ================================================================
+  // QUOTES
+  // ================================================================
+  const QUOTES = [
+    { text: "It always seems impossible until it's done.", author: "— Nelson Mandela" },
+    { text: "The good physician treats the disease; the great physician treats the patient who has the disease.", author: "— William Osler" },
+    { text: "You have survived 100% of your worst days so far.", author: "— Every ortho resident ever" },
+    { text: "In orthopedics, if it bleeds, pack it. If it moves, fix it. If it doesn't move, don't touch it.", author: "— Orthopedic Wisdom" },
+    { text: "The harder I work, the luckier I get in the OR.", author: "— Adapted from Samuel Goldwyn" },
+    { text: "You don't become a bone doctor — you earn the title, one case at a time.", author: "— Program Director Energy" },
+    { text: "Medicine is not only a science; it is also an art.", author: "— Paracelsus" },
+    { text: "The secret of getting ahead is getting started. You've been started for three years. You're almost done.", author: "— Class of 2026" },
+    { text: "To the bone doctors who have been through fire — you are almost on the other side.", author: "— Your countdown timer" },
+    { text: "Every long night you stayed was a life you helped. Now it's your turn.", author: "— Graduation Day" },
+  ];
+
+  // ================================================================
+  // HELPERS
+  // ================================================================
+  function localDateStr(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  // ================================================================
+  // NATIONAL DAY INIT — run once on load
+  // ================================================================
+  function initNationalDay() {
+    const today = localDateStr(new Date());
+    const nd = NATIONAL_DAYS[today];
+    const banner = document.getElementById('national-day-banner');
+    const photoSection = document.getElementById('photo-section');
+
+    if (nd) {
+      // Apply color theme
+      const [r, g, b] = nd.color;
+      document.documentElement.style.setProperty('--nd-color', nd.hex);
+      document.documentElement.style.setProperty('--nd-glow', `rgba(${r},${g},${b},0.4)`);
+      document.documentElement.style.setProperty('--nd-r', r);
+      document.documentElement.style.setProperty('--nd-g', g);
+      document.documentElement.style.setProperty('--nd-b', b);
+
+      // Tint the background subtly
+      document.getElementById('xrayBg').style.background =
+        `radial-gradient(ellipse 80% 60% at 50% 0%, rgba(${r},${g},${b},0.1) 0%, transparent 70%),
+         radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,100,200,0.06) 0%, transparent 60%)`;
+
+      // Fill banner content
+      document.getElementById('ndName').textContent = nd.name;
+      document.getElementById('ndSub').textContent = nd.sub;
+      document.getElementById('ndName').style.filter = `drop-shadow(0 0 20px ${nd.hex})`;
+      document.getElementById('ndStars').textContent =
+        Array(5).fill(nd.emoji).join(' ');
+
+      // Spawn sparkles
+      const sparksContainer = document.getElementById('ndSparks');
+      for (let i = 0; i < 18; i++) {
+        const s = document.createElement('div');
+        s.className = 'nd-spark';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.bottom = Math.random() * 40 + '%';
+        s.style.animationDelay = (Math.random() * 3) + 's';
+        s.style.animationDuration = (2 + Math.random() * 2) + 's';
+        s.style.background = nd.hex;
+        sparksContainer.appendChild(s);
+      }
+
+      // Replace floating emojis with themed ones
+      document.querySelectorAll('.bone').forEach(el => {
+        el.textContent = nd.emoji;
+      });
+
+      banner.classList.add('active');
+      photoSection.classList.remove('active');
+
+      // Swap the blue accent so countdown tiles match the theme
+      document.documentElement.style.setProperty('--blue', nd.hex);
+      document.documentElement.style.setProperty('--blue-glow', `rgba(${r},${g},${b},0.3)`);
+      document.documentElement.style.setProperty('--border', `rgba(${r},${g},${b},0.25)`);
+
+    } else {
+      banner.classList.remove('active');
+      // Show photo section (populated below if PHOTOS is non-empty)
+      if (PHOTOS.length > 0) {
+        photoSection.classList.add('active');
+        const now = new Date();
+        const start = new Date(now.getFullYear(), 0, 0);
+        const dayOfYear = Math.floor((now - start) / 86400000);
+        const photo = PHOTOS[dayOfYear % PHOTOS.length];
+        // Replace placeholder with actual image
+        const frame = photoSection.querySelector('.photo-frame');
+        frame.innerHTML = `<img src="${photo}" alt="Graduation photo" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerHTML='<div style=\\'padding:2rem;text-align:center;color:rgba(255,255,255,0.2)\\'>Photo unavailable</div>'" />`;
+      } else {
+        // Show placeholder frame until photos are added
+        photoSection.classList.add('active');
+      }
+    }
+  }
+
+  // ================================================================
+  // UPCOMING NATIONAL DAYS STRIP
+  // ================================================================
+  function buildNdStrip() {
+    const strip = document.getElementById('nd-strip');
+    const today = localDateStr(new Date());
+    const entries = Object.entries(NATIONAL_DAYS).sort(([a], [b]) => a.localeCompare(b));
+
+    entries.forEach(([dateStr, nd]) => {
+      const chip = document.createElement('div');
+      chip.className = 'nd-chip';
+      chip.style.borderColor = nd.hex;
+      chip.style.color = nd.hex;
+      chip.style.background = `rgba(${nd.color[0]},${nd.color[1]},${nd.color[2]},0.07)`;
+
+      // Format date nicely: "May 22"
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const label = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      chip.textContent = `${nd.emoji} ${label} — ${nd.short}`;
+
+      if (dateStr < today) {
+        chip.classList.add('past');
+      } else if (dateStr === today) {
+        chip.classList.add('today');
+        chip.style.boxShadow = `0 0 14px rgba(${nd.color[0]},${nd.color[1]},${nd.color[2]},0.5)`;
+      } else {
+        chip.classList.add('future');
+      }
+
+      strip.appendChild(chip);
+    });
+  }
+
+  // ================================================================
+  // ROTATING QUOTES
+  // ================================================================
+  let quoteIdx = 0;
+  function showQuote(idx) {
+    const el = document.getElementById('quoteText');
+    const auth = document.getElementById('quoteAuthor');
+    el.style.opacity = 0; auth.style.opacity = 0;
+    setTimeout(() => {
+      el.textContent = QUOTES[idx].text;
+      auth.textContent = QUOTES[idx].author;
+      el.style.opacity = 1; auth.style.opacity = 1;
+    }, 600);
+  }
+  showQuote(0);
+  setInterval(() => {
+    quoteIdx = (quoteIdx + 1) % QUOTES.length;
+    showQuote(quoteIdx);
+  }, 7000);
+
+  // ================================================================
+  // FLOATING BACKGROUND BONES
+  // ================================================================
+  const BONE_ICONS = ['🦴','🩻','💉','🔬','🩺','⚕️'];
+  const bonesBg = document.getElementById('bonesBg');
+  for (let i = 0; i < 25; i++) {
+    const el = document.createElement('div');
+    el.className = 'bone';
+    el.textContent = BONE_ICONS[Math.floor(Math.random() * BONE_ICONS.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.fontSize = (1 + Math.random() * 2) + 'rem';
+    el.style.animationDuration = (15 + Math.random() * 30) + 's';
+    el.style.animationDelay = -(Math.random() * 40) + 's';
+    bonesBg.appendChild(el);
+  }
+
+  // ================================================================
+  // COUNTDOWN TICK
+  // ================================================================
+  let prev = {};
+
+  function tick() {
+    const now = new Date();
+    const diff = TARGET - now;
+
+    if (diff <= 0) {
+      ['days','hours','minutes','seconds'].forEach(id => {
+        document.getElementById(id).textContent = '00';
+      });
+      document.getElementById('celebrate').classList.add('show');
+      launchConfetti();
+      return;
+    }
+
+    const days    = Math.floor(diff / 86400000);
+    const hours   = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    function update(id, val, key) {
+      const el = document.getElementById(id);
+      const str = pad(val);
+      if (prev[key] !== str) {
+        el.textContent = str;
+        el.classList.add('tick');
+        setTimeout(() => el.classList.remove('tick'), 150);
+        prev[key] = str;
+      }
+    }
+    update('days',    days,    'd');
+    update('hours',   hours,   'h');
+    update('minutes', minutes, 'm');
+    update('seconds', seconds, 's');
+
+    // Progress bar
+    const totalMs = TARGET - RESIDENCY_START;
+    const elapsed = now - RESIDENCY_START;
+    const pct = Math.min(100, Math.max(0, (elapsed / totalMs) * 100));
+    document.getElementById('progressFill').style.width = pct.toFixed(3) + '%';
+    document.getElementById('progressPct').textContent = pct.toFixed(2) + '% of residency journey complete';
+
+    // Milestones
+    [30, 14, 7, 1, 0].forEach(t => {
+      const ms = document.getElementById('ms-' + t);
+      if (ms && days <= t) ms.classList.add('reached');
+    });
+  }
+
+  // ================================================================
+  // CONFETTI
+  // ================================================================
+  function launchConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const pieces = Array.from({length: 200}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: 3 + Math.random() * 6,
+      d: 5 + Math.random() * 5,
+      color: ['#00c8ff','#ffffff','#00ff99','#ffd700','#ff6b6b'][Math.floor(Math.random()*5)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngle: 0,
+      tiltAngleInc: 0.07 + Math.random() * 0.05
+    }));
+
+    let frame = 0;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => {
+        p.tiltAngle += p.tiltAngleInc;
+        p.y += Math.cos(frame / 10) + p.d;
+        p.x += Math.sin(frame / 25);
+        p.tilt = Math.sin(p.tiltAngle) * 15;
+        ctx.beginPath();
+        ctx.lineWidth = p.r / 2;
+        ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+        ctx.stroke();
+        if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+      });
+      frame++;
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  initNationalDay();
+  buildNdStrip();
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
