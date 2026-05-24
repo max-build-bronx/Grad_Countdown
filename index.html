@@ -29,8 +29,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      justify-content: flex-start;
+      overflow-x: hidden;
+      overflow-y: auto;
       position: relative;
     }
 
@@ -233,12 +234,11 @@
     }
 
     /* ======================================================
-       PHOTO OF THE DAY (placeholder — wired up when folder provided)
+       PHOTO OF THE DAY — 2 photos per day, rotating daily
     ====================================================== */
     #photo-section {
-      display: none; /* shown on non-national days */
+      display: none;
       width: 100%;
-      max-width: 480px;
       border: 1px solid var(--border);
       border-radius: 16px;
       overflow: hidden;
@@ -249,39 +249,55 @@
 
     .photo-header {
       padding: 0.75rem 1.2rem;
-      display: flex; align-items: center; gap: 0.5rem;
+      display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid var(--border);
       font-size: 0.7rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
       color: var(--blue);
     }
+    .photo-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .photo-date-badge {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.08em;
+      font-style: italic;
+    }
 
-    .photo-frame {
-      width: 100%;
-      aspect-ratio: 4/3;
+    .photo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: rgba(0,200,255,0.08);
+    }
+
+    .photo-cell {
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      position: relative;
+      background: rgba(0,0,0,0.3);
+    }
+    .photo-cell img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .photo-cell:hover img { transform: scale(1.04); }
+
+    /* placeholder state */
+    .photo-cell.placeholder {
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 0.75rem;
-      background: rgba(0,200,255,0.02);
-      /* ─────────────────────────────────────────────────
-         PHOTO PLACEHOLDER — replace this section when
-         graduation-photos/ folder is ready.
-
-         To wire up photos:
-           1. Put all images in a folder next to this file
-           2. Add a JS array PHOTOS = ['folder/img1.jpg', ...]
-           3. Replace the placeholder div with:
-              <img id="photoImg" src="" style="width:100%;height:100%;object-fit:cover;" />
-           4. In tick(), set photoImg.src = todaysPhoto
-         ───────────────────────────────────────────────── */
+      gap: 0.5rem;
       color: rgba(255,255,255,0.15);
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
       text-align: center;
-      padding: 2rem;
+      padding: 1rem;
     }
-    .photo-frame .photo-icon { font-size: 2.5rem; opacity: 0.3; }
+    .photo-cell.placeholder .ph-icon { font-size: 2rem; opacity: 0.25; }
+
     .photo-caption {
       padding: 0.6rem 1.2rem;
       font-size: 0.65rem;
@@ -535,21 +551,17 @@
     <div class="nd-sub" id="ndSub"></div>
   </div>
 
-  <!-- PHOTO OF THE DAY — shown on non-national weekdays -->
-  <!-- ══════════════════════════════════════════════════════
-       PHOTO SECTION — PLACEHOLDER
-       This will display a rotating graduation photo once the
-       graduation-photos/ folder is linked in. See JS below
-       for the PHOTOS array and wiring instructions.
-  ══════════════════════════════════════════════════════ -->
+  <!-- PHOTO OF THE DAY — 2 new photos every day -->
   <div id="photo-section">
-    <div class="photo-header">📸 &nbsp; Graduation Gallery</div>
-    <div class="photo-frame">
-      <div class="photo-icon">🖼️</div>
-      <div>Photos coming soon</div>
-      <div style="font-size:0.6rem; opacity:0.5;">Graduation folder will be linked here</div>
+    <div class="photo-header">
+      <div class="photo-header-left">📸 &nbsp; Today's Memory</div>
+      <div class="photo-date-badge" id="photoDateBadge"></div>
     </div>
-    <div class="photo-caption" id="photoCaption">Class of 2026 · Ortho Residency</div>
+    <div class="photo-grid">
+      <div class="photo-cell" id="photoCell1"></div>
+      <div class="photo-cell" id="photoCell2"></div>
+    </div>
+    <div class="photo-caption">Class of 2026 · Ortho Residency · New photos every day</div>
   </div>
 
   <!-- COUNTDOWN TILES -->
@@ -702,17 +714,40 @@
   };
 
   // ================================================================
-  // PHOTO GALLERY — wire up when folder is ready
+  // PHOTO GALLERY — 28 photos, 2 shown per day, rotating daily
+  // Photos live in the photos/ folder next to this file.
+  // To add more: drop JPG/JPEG files in photos/ and add paths below.
   // ================================================================
-  // PHOTOS array: add image paths here once graduation folder is linked.
-  // Paths should be relative to this HTML file, e.g.:
-  //   'graduation-photos/photo1.jpg'
-  // When empty, the placeholder frame is shown instead.
   const PHOTOS = [
-    /* 'graduation-photos/photo1.jpg', */
-    /* 'graduation-photos/photo2.jpg', */
+    'IMG_0151.JPG',
+    'IMG_0152.JPG',
+    'IMG_0158.JPG',
+    'IMG_0258.JPG',
+    'IMG_0475.JPG',
+    'IMG_0476.JPG',
+    'IMG_4162.JPEG',
+    'IMG_4203.JPG',
+    'IMG_4206.JPG',
+    'IMG_4209.JPG',
+    'IMG_4215.JPG',
+    'IMG_4226.JPG',
+    'IMG_4230.JPG',
+    'IMG_4440.JPG',
+    'IMG_6112.JPG',
+    'IMG_6913.JPG',
+    'IMG_6918.JPEG',
+    'P3260057.JPG',
+    'P3260060.JPG',
+    'P3260070.JPG',
+    'FullSizeRender.JPG',
+    'FullSizeRender%202.JPG',
+    '77e036ac-00bd-45b3-a940-64ca1df84045.JPG',
+    '9548c4a0-b6b2-4138-897a-bac25387632b.JPG',
+    '9841daf1-2b0d-4691-a137-05f55e0868ff.JPG',
+    '9bb4d581-f0f7-4374-aa89-f5fbe71395e7.JPG',
+    'ce3ca201-6e5c-4610-9c1d-235221a73e29.JPG',
+    'fa446acf-739c-41ef-9236-f6da7f770c0a.JPG',
   ];
-  // Photos will rotate daily — photo index = day-of-year mod PHOTOS.length
 
   // ================================================================
   // QUOTES
@@ -800,20 +835,36 @@
 
     } else {
       banner.classList.remove('active');
-      // Show photo section (populated below if PHOTOS is non-empty)
-      if (PHOTOS.length > 0) {
-        photoSection.classList.add('active');
-        const now = new Date();
-        const start = new Date(now.getFullYear(), 0, 0);
-        const dayOfYear = Math.floor((now - start) / 86400000);
-        const photo = PHOTOS[dayOfYear % PHOTOS.length];
-        // Replace placeholder with actual image
-        const frame = photoSection.querySelector('.photo-frame');
-        frame.innerHTML = `<img src="${photo}" alt="Graduation photo" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerHTML='<div style=\\'padding:2rem;text-align:center;color:rgba(255,255,255,0.2)\\'>Photo unavailable</div>'" />`;
-      } else {
-        // Show placeholder frame until photos are added
-        photoSection.classList.add('active');
+      photoSection.classList.add('active');
+
+      // Date badge
+      const now = new Date();
+      document.getElementById('photoDateBadge').textContent =
+        now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+      // Pick today's 2 photos based on day index (changes every day)
+      const dayIndex = Math.floor(now.getTime() / 86400000);
+
+      function fillCell(cellId, photoIndex) {
+        const cell = document.getElementById(cellId);
+        if (PHOTOS.length === 0) {
+          cell.classList.add('placeholder');
+          cell.innerHTML = '<div class="ph-icon">🖼️</div><div>Photos loading…</div>';
+          return;
+        }
+        const src = PHOTOS[photoIndex % PHOTOS.length];
+        const img = document.createElement('img');
+        img.alt = 'Graduation memory';
+        img.src = src;
+        img.onerror = () => {
+          cell.classList.add('placeholder');
+          cell.innerHTML = '<div class="ph-icon">📷</div>';
+        };
+        cell.appendChild(img);
       }
+
+      fillCell('photoCell1', dayIndex * 2);
+      fillCell('photoCell2', dayIndex * 2 + 1);
     }
   }
 
